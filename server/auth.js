@@ -7,6 +7,8 @@ const JWKS = createRemoteJWKSet(new URL(`${ISSUER}/protocol/openid-connect/certs
 });
 const CLIENT = "cloakdine";
 const CLOCK_SKEW_SECONDS = 60;
+// The restaurant is allowed to learn `sub` and nothing else.
+// If a phone or name shows up here, the TideCloak client was given too much scope.
 const LEAKED = [
   "name", "given_name", "family_name", "preferred_username",
   "email", "phone_number", "phone", "phone_number_verified",
@@ -26,6 +28,7 @@ export async function verifyAccessToken(authorization, jwks = JWKS) {
       algorithms: ["RS256"],
       clockTolerance: CLOCK_SKEW_SECONDS,
     });
+    // Real diner tokens say aud=account. azp is the client check. typ=Bearer keeps the ID token out.
     if (payload.azp !== CLIENT || payload.typ !== "Bearer" || typeof payload.sub !== "string" || payload.sub === "") {
       return { status: 401, error: "TideCloak token was rejected." };
     }
@@ -37,7 +40,7 @@ export async function verifyAccessToken(authorization, jwks = JWKS) {
     if (leaked.length > 0) {
       return { status: 403, error: `Token carries identity claims (${leaked.join(", ")}). Scopes are misconfigured.` };
     }
-    return { sub: payload.sub };
+    return { sub: payload.sub }; // caller stores a member number, not this token
   } catch (error) {
     if (keySetUnavailable(error)) {
       return { status: 503, error: "TideCloak key set is unavailable." };

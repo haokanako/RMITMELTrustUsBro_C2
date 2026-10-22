@@ -45,6 +45,7 @@ function ordersApi() {
             return send(res, 200, exportCsv(), "text/csv; charset=utf-8");
           }
           if (req.method === "POST" && url.pathname === "/api/orders") {
+            // Check the token before reading the order, so a bad login can't poke at the menu rules.
             const auth = await verifyAccessToken(req.headers.authorization);
             if (auth.error) return send(res, auth.status, { error: auth.error });
             const result = createOrder(await readBody(req), auth.sub);

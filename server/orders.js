@@ -9,6 +9,7 @@ const MENU = {
 };
 
 const RESTAURANTS = new Set(["nasi-lane", "teh-house"]);
+// Phone, name, and the member number are not fields. The browser does not get to invent the member number.
 const ALLOWED = ["restaurantId", "table", "items", "total"];
 const ITEM_ALLOWED = ["name", "price", "qty"];
 
@@ -71,6 +72,7 @@ export function createOrder(body, sub) {
     table: body.table,
     items: body.items.map((item) => ({ name: item.name, qty: item.qty, price: item.price })),
     total: expected,
+    // Same person at Nasi Lane and Teh House gets two different numbers, so the exports don't line up.
     anonId: anonymousId(sub, body.restaurantId),
   };
   orders.push(order);

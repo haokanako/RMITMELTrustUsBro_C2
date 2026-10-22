@@ -87,6 +87,7 @@ export default function App() {
       setNoticeBad(true);
       return;
     }
+    // Token goes in the header only. The body is what we show judges as "what the restaurant received".
     const payload = {
       restaurantId,
       table,
@@ -110,6 +111,7 @@ export default function App() {
     loadList(true);
   }
 
+  // Demo button. A logged-in diner tries to sneak a phone number into the order. The kitchen should refuse.
   async function sendPhoneAnyway() {
     setNotice("");
     setNoticeBad(true);

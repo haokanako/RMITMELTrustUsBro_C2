@@ -9,6 +9,7 @@ REALM = "cloakdine"
 CLIENT = "cloakdine"
 REDIRECT = "http://localhost:5174/*"
 ORIGIN = "http://localhost:5174"
+# Taken off the CloakDine client so the login token cannot carry a name, email, or phone.
 DROP_SCOPES = {"profile", "email", "phone"}
 FORBIDDEN = {"name", "given_name", "family_name", "preferred_username", "email", "phone_number", "phone", "phone_number_verified"}
 PHONE_ATTRIBUTE = {
