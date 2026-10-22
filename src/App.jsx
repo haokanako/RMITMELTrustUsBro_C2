@@ -18,7 +18,7 @@ function money(value) {
 
 export default function App() {
   const [accessToken, setAccessToken] = useState("");
-  const [signStep, setSignStep] = useState("");
+  const [signStep, setSignStep] = useState("phone");
   const [phone, setPhone] = useState("+60123456789");
   const [otp, setOtp] = useState("");
   const [shownMember, setShownMember] = useState("");
@@ -155,7 +155,7 @@ export default function App() {
     setPhone("+60123456789");
     setOtp("");
     setShownMember("");
-    setSignStep("");
+    setSignStep("phone");
     setLastAward(null);
   }
 
@@ -165,7 +165,7 @@ export default function App() {
     const response = await fetch("/api/identity/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, otp }),
+      body: JSON.stringify({ phone, otp: otp.replace(/\s/g, "") }),
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -192,48 +192,12 @@ export default function App() {
         <div>
           <p className="brand">CloakDine</p>
           <h1>Table service without the phone number</h1>
-          <p className="hint">One tap. The phone number goes to TideCloak. The kitchen receives a member number and 10 points.</p>
+          <p className="hint">The phone number is taken on the check, then replaced by a member number.</p>
         </div>
         <div className="session">
-          {accessToken ? (
-            <>
-              <span>TideCloak session</span>
-              <button type="button" onClick={signOut}>Log out</button>
-            </>
-          ) : (
-            <button type="button" className="primary" onClick={() => setSignStep("phone")}>Continue with phone</button>
-          )}
+          {accessToken ? <button type="button" onClick={signOut}>Log out</button> : <span>Table {table}</span>}
         </div>
       </header>
-
-      {signStep && (
-        <section className="gate">
-          {signStep === "phone" && (
-            <form onSubmit={(event) => { event.preventDefault(); setSignStep("otp"); }}>
-              <h2>Your phone number</h2>
-              <p>TideCloak stores this. The restaurant does not.</p>
-              <input value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" aria-label="Phone number" />
-              <button type="submit" className="primary">Send code</button>
-            </form>
-          )}
-          {signStep === "otp" && (
-            <form onSubmit={(event) => { event.preventDefault(); verifyPhone(); }}>
-              <h2>Enter the code</h2>
-              <p>Demo code from TideCloak: 1234</p>
-              <input value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" aria-label="One-time code" />
-              <button type="submit" className="primary">Verify</button>
-            </form>
-          )}
-          {signStep === "morph" && (
-            <div>
-              <h2>Held by TideCloak</h2>
-              <p className="struck">{phone}</p>
-              <p className="member">{shownMember}</p>
-              <p>The kitchen will see the member number, not the phone.</p>
-            </div>
-          )}
-        </section>
-      )}
 
       <main className="layout">
         <section className="menu-card">
@@ -272,8 +236,8 @@ export default function App() {
             <div>
               <p className="quiet">{cart.length === 0 ? "No dishes yet." : "This check"}</p>
               <strong>{money(total)}</strong>
-              <p className="member">{member ? member.anonId : "Member number appears after login"}</p>
-              <p className="quiet">This order earns 10 points. You have {member ? member.points : 0} points here.</p>
+              {accessToken && <p className="member">{member?.anonId}</p>}
+              {accessToken && <p className="quiet">This order earns 10 points. You have {member ? member.points : 0} points here.</p>}
               {cart.length > 0 && (
                 <ul className="quiet">
                   {cart.map((item) => (
@@ -285,11 +249,51 @@ export default function App() {
                 </ul>
               )}
             </div>
-            <div className="actions">
-              <button type="button" className="primary" onClick={placeOrder}>Send to kitchen</button>
-              <button type="button" onClick={sendPhoneAnyway}>Attach a phone number</button>
-            </div>
+            {accessToken && (
+              <div className="actions">
+                <button type="button" className="primary" onClick={placeOrder}>Send to kitchen</button>
+                <button type="button" onClick={sendPhoneAnyway}>Attach a phone number</button>
+              </div>
+            )}
           </div>
+          {!accessToken && signStep === "phone" && (
+            <form className="check-flow" onSubmit={(event) => { event.preventDefault(); if (phone.trim()) setSignStep("otp"); }}>
+              <label htmlFor="phone">Phone number</label>
+              <input id="phone" value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" />
+              <button type="submit" className="primary">Send code</button>
+            </form>
+          )}
+          {!accessToken && signStep === "otp" && (
+            <form className="check-flow" onSubmit={(event) => { event.preventDefault(); verifyPhone(); }}>
+              <p className="quiet">{phone}</p>
+              <div className="otp">
+                {[0, 1, 2, 3].map((index) => (
+                  <input
+                    key={index}
+                    inputMode="numeric"
+                    maxLength={1}
+                    aria-label={`Code digit ${index + 1}`}
+                    value={otp[index] && otp[index] !== " " ? otp[index] : ""}
+                    onChange={(event) => {
+                      const digit = event.target.value.replace(/\D/g, "").slice(-1);
+                      const next = `${otp}    `.slice(0, 4).split("");
+                      next[index] = digit || " ";
+                      setOtp(next.join(""));
+                      if (digit) event.target.nextElementSibling?.focus();
+                    }}
+                  />
+                ))}
+              </div>
+              <p className="quiet">Code 1234, for the demo.</p>
+              <button type="submit" className="primary">Verify</button>
+            </form>
+          )}
+          {signStep === "morph" && (
+            <div className="check-flow">
+              <p className="struck">{phone}</p>
+              <p className="member rise">{shownMember}</p>
+            </div>
+          )}
           {notice && <p className={noticeBad ? "notice bad" : "notice"}>{notice}</p>}
         </section>
 
