@@ -12,6 +12,8 @@ function normalizePhone(value) {
   return /^\+[1-9][0-9]{7,14}$/.test(phone) ? phone : "";
 }
 
+// TideCloak wants a name and email before it will log someone in.
+// Our guest only typed a phone number, so those can't stay compulsory.
 async function keepOnlyPhoneRequired(admin) {
   const current = await tide(`/admin/realms/${REALM}/users/profile`, admin);
   if (!current.ok) return;
@@ -84,6 +86,7 @@ export async function openTideSession(input) {
   }
   if (!userId) return { status: 503, error: "TideCloak could not store the number." };
 
+  // Throwaway password, just enough for TideCloak to hand us a token. We don't keep it.
   const password = randomBytes(18).toString("hex");
   const secret = await tide(`/admin/realms/${REALM}/users/${userId}/reset-password`, admin, {
     method: "PUT",

@@ -88,6 +88,7 @@ export default function App() {
   async function placeOrder() {
     setNotice("");
     setNoticeBad(false);
+    // Still a stranger. Ask for the phone in the dialog, don't fire the order yet.
     if (!accessToken) {
       setSignStep("phone");
       return;
@@ -184,6 +185,7 @@ export default function App() {
       return;
     }
     const hereMember = body.members?.find((item) => item.restaurantId === restaurantId);
+    // Bottom of the page, for the camera. This is not saved with the order.
     setIdentityProof({
       phone: body.checked?.phone || phone,
       otp: body.checked?.otp || otp.replace(/\s/g, ""),
@@ -194,6 +196,7 @@ export default function App() {
     });
     setShownMember(hereMember?.anonId || "");
     setSignStep("morph");
+    // Hold the crossed-out number long enough to see, then close the dialog.
     window.setTimeout(() => {
       setAccessToken(body.accessToken);
       setPhone("");
@@ -233,7 +236,11 @@ export default function App() {
             </div>
             <div className="switch">
               {RESTAURANTS.map((item) => (
-                <button key={item.id} type="button" className={item.id === restaurantId ? "on" : ""} onClick={() => { setRestaurantId(item.id); setCart([]); }}>
+                <button key={item.id} type="button" className={item.id === restaurantId ? "on" : ""} onClick={() => {
+                  // Other shop, other menu. An old cart would be rejected.
+                  setRestaurantId(item.id);
+                  setCart([]);
+                }}>
                   {item.name}
                 </button>
               ))}

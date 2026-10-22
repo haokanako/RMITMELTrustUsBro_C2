@@ -42,6 +42,7 @@ function ordersApi() {
             if (auth.error) return send(res, auth.status, { error: auth.error });
             return send(res, 200, { ...listOrders(), session: sessionFor(auth.sub) });
           }
+          // The ledger only has rows we already accepted. No phone column to leak.
           if (req.method === "GET" && url.pathname === "/api/export") {
             return send(res, 200, exportCsv(), "text/csv; charset=utf-8");
           }

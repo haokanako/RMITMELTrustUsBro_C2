@@ -1,5 +1,6 @@
 import { anonymousId } from "./anon.js";
 
+// Gone when you stop `npm run dev`. Don't treat this like the shop's real database.
 const orders = [];
 
 // Prices live here, not in the browser. A Teh House drink sent to Nasi Lane is just an unknown dish.
@@ -17,6 +18,7 @@ const MENUS = {
 };
 
 const RESTAURANTS = new Set(["nasi-lane", "teh-house"]);
+// Always 10, not a cut of the bill. Easier to point at on camera.
 const POINTS_PER_ORDER = 10;
 // Phone, name, and the member number are not fields. The browser does not get to invent the member number.
 const ALLOWED = ["restaurantId", "table", "items", "total"];

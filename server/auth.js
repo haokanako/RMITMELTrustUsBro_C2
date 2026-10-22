@@ -52,6 +52,7 @@ export async function verifyAccessToken(authorization, jwks = JWKS) {
   }
 }
 
+// TideCloak didn't answer. That's not the same as a bad login.
 function keySetUnavailable(error) {
   if (error instanceof errors.JWKSTimeout) return true;
   if (error instanceof TypeError && error.message === "fetch failed") return true;
