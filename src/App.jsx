@@ -5,11 +5,18 @@ const RESTAURANTS = [
   { id: "teh-house", name: "Teh House" },
 ];
 
-const MENU = [
-  { name: "Nasi Lemak", price: 14.9, note: "Coconut rice, sambal, egg" },
-  { name: "Iced Teh Tarik", price: 4.5, note: "Pulled tea over ice" },
-  { name: "Roti Canai", price: 5, note: "Crisp flatbread" },
-];
+const MENUS = {
+  "nasi-lane": [
+    { name: "Nasi Lemak", price: 14.9, note: "Coconut rice, sambal, egg" },
+    { name: "Ayam Goreng", price: 12.5, note: "Fried chicken and rice" },
+    { name: "Roti Canai", price: 5, note: "Crisp flatbread" },
+  ],
+  "teh-house": [
+    { name: "Teh Tarik", price: 4.5, note: "Hot pulled tea" },
+    { name: "Iced Teh Tarik", price: 4.5, note: "Pulled tea over ice" },
+    { name: "Kaya Toast", price: 6.5, note: "Butter and coconut jam" },
+  ],
+};
 
 function money(value) {
   return `RM ${value.toFixed(2)}`;
@@ -90,7 +97,7 @@ export default function App() {
       setNoticeBad(true);
       return;
     }
-    // Token goes in the header only. The body is what we show judges as "what the restaurant received".
+    // Header carries the token. The JSON below is the whole order, so don't drop the phone in it.
     const payload = {
       restaurantId,
       table,
@@ -226,7 +233,7 @@ export default function App() {
             </div>
             <div className="switch">
               {RESTAURANTS.map((item) => (
-                <button key={item.id} type="button" className={item.id === restaurantId ? "on" : ""} onClick={() => setRestaurantId(item.id)}>
+                <button key={item.id} type="button" className={item.id === restaurantId ? "on" : ""} onClick={() => { setRestaurantId(item.id); setCart([]); }}>
                   {item.name}
                 </button>
               ))}
@@ -238,7 +245,7 @@ export default function App() {
           </div>
 
           <ul className="menu">
-            {MENU.map((dish) => (
+            {MENUS[restaurantId].map((dish) => (
               <li key={dish.name}>
                 <div>
                   <h3>{dish.name}</h3>

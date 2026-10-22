@@ -2,10 +2,18 @@ import { anonymousId } from "./anon.js";
 
 const orders = [];
 
-const MENU = {
-  "Nasi Lemak": 14.9,
-  "Iced Teh Tarik": 4.5,
-  "Roti Canai": 5,
+// Prices live here, not in the browser. A Teh House drink sent to Nasi Lane is just an unknown dish.
+const MENUS = {
+  "nasi-lane": {
+    "Nasi Lemak": 14.9,
+    "Ayam Goreng": 12.5,
+    "Roti Canai": 5,
+  },
+  "teh-house": {
+    "Teh Tarik": 4.5,
+    "Iced Teh Tarik": 4.5,
+    "Kaya Toast": 6.5,
+  },
 };
 
 const RESTAURANTS = new Set(["nasi-lane", "teh-house"]);
@@ -50,7 +58,7 @@ export function createOrder(body, sub) {
     if (extraItem.length > 0) {
       return { status: 400, error: `Rejected item fields: ${extraItem.join(", ")}` };
     }
-    const price = MENU[item.name];
+    const price = MENUS[body.restaurantId][item.name];
     if (price === undefined) return { status: 400, error: "Unknown dish." };
     if (!Number.isInteger(item.qty) || item.qty < 1 || item.qty > 9) {
       return { status: 400, error: "Quantity must be from 1 to 9." };
@@ -62,6 +70,7 @@ export function createOrder(body, sub) {
   if (typeof body.total !== "number" || Math.abs(body.total - expected) > 0.001) {
     return { status: 400, error: "Total does not match the menu." };
   }
+  // A phone number hidden inside a dish name still fails.
   if (looksLikePersonalData(JSON.stringify(body))) {
     return { status: 400, error: "Personal data is not accepted." };
   }

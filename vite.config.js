@@ -45,6 +45,7 @@ function ordersApi() {
           if (req.method === "GET" && url.pathname === "/api/export") {
             return send(res, 200, exportCsv(), "text/csv; charset=utf-8");
           }
+          // This is the only route allowed to see a phone number. Orders never come through here.
           if (req.method === "POST" && url.pathname === "/api/identity/session") {
             const result = await openTideSession(await readBody(req));
             if (result.error) return send(res, result.status, { error: result.error });
