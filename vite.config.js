@@ -52,6 +52,7 @@ function ordersApi() {
               accessToken: result.accessToken,
               sub: result.sub,
               members: result.members,
+              checked: result.checked,
             });
           }
           if (req.method === "POST" && url.pathname === "/api/orders") {
