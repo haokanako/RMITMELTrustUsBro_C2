@@ -15,6 +15,11 @@ function money(value) {
   return `RM ${value.toFixed(2)}`;
 }
 
+function shortToken(token) {
+  if (!token) return "";
+  return token.length < 28 ? token : `${token.slice(0, 16)}…${token.slice(-4)}`;
+}
+
 export default function App() {
   const [accessToken, setAccessToken] = useState("");
   const [signStep, setSignStep] = useState("");
@@ -337,19 +342,34 @@ export default function App() {
 
       <section className="proof">
         <article>
-          <h3>1. Customer submitted</h3>
-          <pre>{identityProof ? `phone\n${identityProof.phone}\n\notp\n${identityProof.otp}` : "No phone or code yet."}{lastPayload ? `\n\norder\n${JSON.stringify(lastPayload, null, 2)}` : ""}</pre>
-          <p className="fine">The phone and the code go to TideCloak. The order does not include them.</p>
+          <h3>Customer submitted</h3>
+          {identityProof ? (
+            <dl className="facts">
+              <div><dt>Phone</dt><dd>{identityProof.phone}</dd></div>
+              <div><dt>Code</dt><dd>{identityProof.otp}</dd></div>
+              {lastPayload && <div><dt>Order</dt><dd>Table {lastPayload.table} · {lastPayload.items.map((item) => `${item.qty}× ${item.name}`).join(", ")}</dd></div>}
+            </dl>
+          ) : <p className="fine">Phone and code appear here.</p>}
         </article>
         <article>
-          <h3>2. TideCloak checked and returned</h3>
-          <pre>{identityProof ? `phone ${identityProof.phone}\notp ${identityProof.otp}\nmatch ${identityProof.match ? "yes" : "no"}\n\ntoken\n${identityProof.token}` : "Waiting for the phone and code."}</pre>
-          <p className="fine">TideCloak kept the number and sent back a token. Subject {identityProof?.sub || "—"}.</p>
+          <h3>TideCloak returned</h3>
+          {identityProof ? (
+            <dl className="facts">
+              <div><dt>Match</dt><dd>{identityProof.match ? "Yes" : "No"}</dd></div>
+              <div><dt>Token</dt><dd>{shortToken(identityProof.token)}</dd></div>
+              <div><dt>Member</dt><dd>{identityProof.member}</dd></div>
+            </dl>
+          ) : <p className="fine">Waiting for the code.</p>}
         </article>
         <article>
-          <h3>3. Restaurant knows</h3>
-          <pre>{lastAward ? `member ${lastAward.anonId}\nissued ${lastAward.awarded} points\nyou now have ${lastAward.points} points` : identityProof ? `member ${identityProof.member}\nno order yet` : "Nothing stored yet."}</pre>
-          <p className="fine">The kitchen issued the points from the token. It never saw a phone number.</p>
+          <h3>Restaurant knows</h3>
+          {lastAward ? (
+            <dl className="facts">
+              <div><dt>Member</dt><dd>{lastAward.anonId}</dd></div>
+              <div><dt>Points</dt><dd>+{lastAward.awarded} · now {lastAward.points}</dd></div>
+              <div><dt>Phone</dt><dd>Not received</dd></div>
+            </dl>
+          ) : <p className="fine">No order yet.</p>}
         </article>
       </section>
 
