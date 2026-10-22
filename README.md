@@ -1,5 +1,7 @@
 # CloakDine
 
+Team `RMITMELTrustUsBro_C2`.
+
 A diner orders at the table and keeps loyalty points, while the restaurant never receives a phone number, name, or email.
 
 ## Vision & originality
