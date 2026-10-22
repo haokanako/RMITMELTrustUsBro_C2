@@ -1,0 +1,235 @@
+:root {
+  --floor: #141311;
+  --ink: #1c1915;
+  --ivory: #f7f3eb;
+  --paper: #fffdf8;
+  --line: #e3dacb;
+  --brass: #8d6b3a;
+  --brass-soft: #c4a574;
+  --muted: #746b60;
+  --ticket: #f3ecdf;
+  color: var(--ivory);
+  background: var(--floor);
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+button, select {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid rgba(244, 239, 230, 0.28);
+  border-radius: 2px;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--ivory);
+  border-color: var(--ink);
+}
+
+.shell { min-height: 100vh; }
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.1rem 1.6rem;
+  border-bottom: 1px solid rgba(244, 239, 230, 0.12);
+}
+
+.brand { margin: 0; font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--brass-soft); }
+
+.hint { margin: 0.35rem 0 0; max-width: 38rem; color: #b7ad9f; font-size: 0.95rem; }
+
+.top h1 {
+  margin: 0.15rem 0 0;
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 500;
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+}
+
+.session { display: flex; align-items: center; gap: 0.75rem; color: var(--brass-soft); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 1.25rem;
+  width: min(1180px, calc(100% - 2rem));
+  margin: 1.25rem auto;
+}
+
+.menu-card, .pass { min-width: 0; }
+
+.menu-card {
+  background: var(--paper);
+  color: var(--ink);
+  padding: 1.4rem 1.5rem 1.2rem;
+  border-top: 4px solid var(--brass);
+}
+
+.venue {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.9rem;
+}
+
+.venue h2, .pass h2 {
+  margin: 0.15rem 0 0;
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 500;
+  font-size: 2rem;
+}
+
+.eyebrow, .pass .eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.switch { display: flex; gap: 0.4rem; align-items: center; }
+
+.menu-card .switch button,
+.menu-card select {
+  color: var(--ink);
+  border-color: var(--line);
+  background: transparent;
+}
+
+.menu-card .switch button.on { background: var(--ink); color: var(--ivory); border-color: var(--ink); }
+
+.menu { list-style: none; margin: 0; padding: 0.4rem 0 0; }
+
+.menu li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu h3 { margin: 0; font-family: Newsreader, Georgia, serif; font-weight: 500; font-size: 1.25rem; }
+
+.menu p, .quiet { margin: 0.15rem 0 0; color: var(--muted); }
+
+.price { font-variant-numeric: tabular-nums; }
+
+.bill {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  margin-top: 1rem;
+}
+
+.bill strong { display: block; font-family: Newsreader, Georgia, serif; font-size: 1.7rem; font-weight: 500; }
+
+.member { margin: 0.2rem 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
+
+.bill ul { list-style: none; margin: 0.7rem 0 0; padding: 0; }
+
+.bill li { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-top: 0.35rem; }
+
+.bill li button { padding: 0.2rem 0.45rem; font-size: 0.82rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
+
+.menu-card .actions .primary { background: var(--ink); color: var(--ivory); }
+
+.notice {
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0.8rem;
+  background: #f4efe4;
+  border-left: 3px solid var(--brass);
+}
+
+.notice.bad { background: #f8ece8; border-left-color: #8c3b32; }
+
+.pass {
+  background: #201e1a;
+  border: 1px solid rgba(244, 239, 230, 0.08);
+  padding: 1.2rem;
+}
+
+.pass-head, .ledger-head { display: flex; justify-content: space-between; gap: 1rem; align-items: end; }
+
+.points { margin: 0; text-align: right; color: var(--brass-soft); }
+
+.points strong { display: block; color: var(--ivory); font-size: 1.4rem; font-family: Newsreader, Georgia, serif; font-weight: 500; }
+
+.tickets { display: grid; gap: 0.7rem; margin: 1rem 0; }
+
+.ticket {
+  background: var(--ticket);
+  color: var(--ink);
+  padding: 0.85rem 0.9rem 0.75rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.ticket header, .ticket footer { display: flex; justify-content: space-between; gap: 0.6rem; }
+
+.ticket header span, .ticket footer { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+
+.ticket ul { list-style: none; margin: 0.55rem 0; padding: 0.45rem 0; border-top: 1px dashed #cfc3ae; border-bottom: 1px dashed #cfc3ae; }
+
+.empty { color: #b7ad9f; }
+
+.pass .primary { background: var(--ivory); color: var(--ink); border-color: var(--ivory); }
+
+.fine { color: #b7ad9f; font-size: 0.92rem; }
+
+.ledger { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.92rem; }
+
+.ledger th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--brass-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ledger th, .ledger td { padding: 0.45rem 0.35rem 0.45rem 0; border-bottom: 1px solid rgba(244, 239, 230, 0.12); vertical-align: top; }
+
+.proof {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.proof article { border: 1px solid rgba(244, 239, 230, 0.12); padding: 0.9rem 1rem 1rem; }
+
+.proof h3 { margin: 0 0 0.6rem; font-size: 0.95rem; font-weight: 500; }
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  color: #d9d0c3;
+}
+
+.loading, .banner.bad { padding: 1.4rem 1.6rem; }
+
+.banner.bad { color: #f2d2cc; }
+
+@media (max-width: 860px) {
+  .layout, .proof, .top, .venue, .bill, .pass-head { display: block; }
+  .session, .actions, .switch { margin-top: 0.8rem; }
+  .points { text-align: left; margin-top: 0.7rem; }
+}
