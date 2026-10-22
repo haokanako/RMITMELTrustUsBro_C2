@@ -18,7 +18,7 @@ function money(value) {
 
 export default function App() {
   const [accessToken, setAccessToken] = useState("");
-  const [signStep, setSignStep] = useState("phone");
+  const [signStep, setSignStep] = useState("");
   const [phone, setPhone] = useState("+60123456789");
   const [otp, setOtp] = useState("");
   const [shownMember, setShownMember] = useState("");
@@ -79,8 +79,6 @@ export default function App() {
     setNoticeBad(false);
     if (!accessToken) {
       setSignStep("phone");
-      setNotice("Enter your phone number first. TideCloak keeps it.");
-      setNoticeBad(true);
       return;
     }
     if (cart.length === 0) {
@@ -155,7 +153,7 @@ export default function App() {
     setPhone("+60123456789");
     setOtp("");
     setShownMember("");
-    setSignStep("phone");
+    setSignStep("");
     setLastAward(null);
   }
 
@@ -192,10 +190,17 @@ export default function App() {
         <div>
           <p className="brand">CloakDine</p>
           <h1>Table service without the phone number</h1>
-          <p className="hint">The phone number is taken on the check, then replaced by a member number.</p>
+          <p className="hint">Choose the dishes. The phone is asked only when the order goes to the kitchen.</p>
         </div>
         <div className="session">
-          {accessToken ? <button type="button" onClick={signOut}>Log out</button> : <span>Table {table}</span>}
+          {accessToken ? (
+            <>
+              <span>{member?.anonId}</span>
+              <button type="button" onClick={signOut}>Log out</button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setSignStep("phone")}>Sign in</button>
+          )}
         </div>
       </header>
 
@@ -249,51 +254,11 @@ export default function App() {
                 </ul>
               )}
             </div>
-            {accessToken && (
-              <div className="actions">
-                <button type="button" className="primary" onClick={placeOrder}>Send to kitchen</button>
-                <button type="button" onClick={sendPhoneAnyway}>Attach a phone number</button>
-              </div>
-            )}
-          </div>
-          {!accessToken && signStep === "phone" && (
-            <form className="check-flow" onSubmit={(event) => { event.preventDefault(); if (phone.trim()) setSignStep("otp"); }}>
-              <label htmlFor="phone">Phone number</label>
-              <input id="phone" value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" />
-              <button type="submit" className="primary">Send code</button>
-            </form>
-          )}
-          {!accessToken && signStep === "otp" && (
-            <form className="check-flow" onSubmit={(event) => { event.preventDefault(); verifyPhone(); }}>
-              <p className="quiet">{phone}</p>
-              <div className="otp">
-                {[0, 1, 2, 3].map((index) => (
-                  <input
-                    key={index}
-                    inputMode="numeric"
-                    maxLength={1}
-                    aria-label={`Code digit ${index + 1}`}
-                    value={otp[index] && otp[index] !== " " ? otp[index] : ""}
-                    onChange={(event) => {
-                      const digit = event.target.value.replace(/\D/g, "").slice(-1);
-                      const next = `${otp}    `.slice(0, 4).split("");
-                      next[index] = digit || " ";
-                      setOtp(next.join(""));
-                      if (digit) event.target.nextElementSibling?.focus();
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="quiet">Code 1234, for the demo.</p>
-              <button type="submit" className="primary">Verify</button>
-            </form>
-          )}
-          {signStep === "morph" && (
-            <div className="check-flow">
-              <p className="struck">{phone}</p>
-              <p className="member rise">{shownMember}</p>
+            <div className="actions">
+              <button type="button" className="primary" onClick={placeOrder}>Send to kitchen</button>
+              {accessToken && <button type="button" onClick={sendPhoneAnyway}>Attach a phone number</button>}
             </div>
-          )}
+          </div>
           {notice && <p className={noticeBad ? "notice bad" : "notice"}>{notice}</p>}
         </section>
 
@@ -379,6 +344,64 @@ export default function App() {
           <p className="fine">The kitchen issued the points. It never saw a phone number.</p>
         </article>
       </section>
+
+      {signStep && (
+        <div className="modal-back" onClick={() => { if (signStep !== "morph") setSignStep(""); }}>
+          <section className="sheet" role="dialog" aria-modal="true" aria-labelledby="sign-title" onClick={(event) => event.stopPropagation()}>
+            {signStep === "phone" && (
+              <form onSubmit={(event) => { event.preventDefault(); if (phone.trim()) setSignStep("otp"); }}>
+                <p className="eyebrow">TideCloak</p>
+                <h2 id="sign-title">Phone number</h2>
+                <p>Stored with TideCloak. The kitchen never receives it.</p>
+                <input id="phone" value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" autoFocus />
+                <div className="sheet-actions">
+                  <button type="button" onClick={() => setSignStep("")}>Cancel</button>
+                  <button type="submit" className="primary">Send code</button>
+                </div>
+              </form>
+            )}
+            {signStep === "otp" && (
+              <form onSubmit={(event) => { event.preventDefault(); verifyPhone(); }}>
+                <p className="eyebrow">TideCloak</p>
+                <h2 id="sign-title">Enter the code</h2>
+                <p>{phone}</p>
+                <div className="otp">
+                  {[0, 1, 2, 3].map((index) => (
+                    <input
+                      key={index}
+                      inputMode="numeric"
+                      maxLength={1}
+                      aria-label={`Code digit ${index + 1}`}
+                      value={otp[index] && otp[index] !== " " ? otp[index] : ""}
+                      autoFocus={index === 0}
+                      onChange={(event) => {
+                        const digit = event.target.value.replace(/\D/g, "").slice(-1);
+                        const next = `${otp}    `.slice(0, 4).split("");
+                        next[index] = digit || " ";
+                        setOtp(next.join(""));
+                        if (digit) event.target.nextElementSibling?.focus();
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="quiet">Demo code 1234</p>
+                <div className="sheet-actions">
+                  <button type="button" onClick={() => setSignStep("phone")}>Back</button>
+                  <button type="submit" className="primary">Verify</button>
+                </div>
+              </form>
+            )}
+            {signStep === "morph" && (
+              <div className="morph">
+                <p className="eyebrow">TideCloak</p>
+                <h2 id="sign-title">Member number</h2>
+                <p className="struck">{phone}</p>
+                <p className="member rise">{shownMember}</p>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

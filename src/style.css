@@ -48,23 +48,52 @@ button.primary {
 
 .hint { margin: 0.35rem 0 0; max-width: 38rem; color: #b7ad9f; font-size: 0.95rem; }
 
-.bill { flex-wrap: wrap; }
+.modal-back {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(12, 11, 9, 0.62);
+  z-index: 20;
+}
 
-.check-flow { width: 100%; margin-top: 0.9rem; }
+.sheet {
+  width: min(420px, 100%);
+  background: var(--paper);
+  color: var(--ink);
+  border-top: 3px solid var(--brass);
+  padding: 1.35rem 1.4rem 1.25rem;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
 
-.check-flow label, .check-flow .quiet { color: #746b60; font-size: 0.92rem; }
+.sheet h2 {
+  margin: 0.2rem 0 0.35rem;
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 500;
+  font-size: 1.8rem;
+}
 
-.check-flow > input {
+.sheet p { margin: 0.2rem 0 0.8rem; color: var(--muted); }
+
+.sheet input[type="tel"], .sheet > form > input, .sheet form > input {
   width: 100%;
-  margin: 0.35rem 0 0.7rem;
-  padding: 0.65rem 0;
+  margin: 0.2rem 0 1rem;
+  padding: 0.55rem 0;
   border: 0;
-  border-bottom: 1px solid #e3dacb;
+  border-bottom: 1px solid var(--line);
   background: transparent;
+  color: var(--ink);
   font: inherit;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
+
+.sheet-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+.sheet button:not(.primary) { color: var(--ink); border-color: var(--line); }
+
+.morph { min-height: 9rem; }
 
 .otp { display: flex; gap: 0.6rem; margin: 0.6rem 0; }
 
@@ -180,8 +209,14 @@ button.primary {
   grid-template-columns: 1fr auto auto;
   gap: 1rem;
   align-items: center;
-  padding: 0.9rem 0;
+  padding: 0.95rem 0;
   border-bottom: 1px solid var(--line);
+}
+
+.menu li button {
+  color: var(--ink);
+  border-color: var(--line);
+  padding: 0.35rem 0.7rem;
 }
 
 .menu h3 { margin: 0; font-family: Newsreader, Georgia, serif; font-weight: 500; font-size: 1.25rem; }
