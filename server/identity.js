@@ -112,6 +112,7 @@ export async function openTideSession(input) {
     status: 200,
     accessToken,
     sub: payload.sub,
+    checked: { phone, otp: String(input.otp), match: true },
     members: restaurants.map((restaurantId) => ({
       restaurantId,
       anonId: anonymousId(payload.sub, restaurantId),

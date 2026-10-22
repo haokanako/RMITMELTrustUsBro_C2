@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { identityClaims } from "./anon.js";
+import { useEffect, useState } from "react";
 
 const RESTAURANTS = [
   { id: "nasi-lane", name: "Nasi Lane" },
@@ -32,8 +31,8 @@ export default function App() {
   const [noticeBad, setNoticeBad] = useState(false);
   const [exportRows, setExportRows] = useState([]);
   const [lastAward, setLastAward] = useState(null);
+  const [identityProof, setIdentityProof] = useState(null);
 
-  const claims = useMemo(() => identityClaims(accessToken), [accessToken]);
   const restaurant = RESTAURANTS.find((item) => item.id === restaurantId);
   const total = Math.round(cart.reduce((sum, item) => sum + item.price * item.qty, 0) * 100) / 100;
   const member = session?.members?.find((item) => item.restaurantId === restaurantId);
@@ -155,6 +154,7 @@ export default function App() {
     setShownMember("");
     setSignStep("");
     setLastAward(null);
+    setIdentityProof(null);
   }
 
   async function verifyPhone() {
@@ -172,6 +172,14 @@ export default function App() {
       return;
     }
     const hereMember = body.members?.find((item) => item.restaurantId === restaurantId);
+    setIdentityProof({
+      phone: body.checked?.phone || phone,
+      otp: body.checked?.otp || otp.replace(/\s/g, ""),
+      match: Boolean(body.checked?.match),
+      token: body.accessToken,
+      sub: body.sub,
+      member: hereMember?.anonId || "",
+    });
     setShownMember(hereMember?.anonId || "");
     setSignStep("morph");
     window.setTimeout(() => {
@@ -330,18 +338,18 @@ export default function App() {
       <section className="proof">
         <article>
           <h3>1. Customer submitted</h3>
-          <pre>{lastPayload ? JSON.stringify(lastPayload, null, 2) : "No order yet."}</pre>
-          <p className="fine">Table, dishes, and total. No phone number.</p>
+          <pre>{identityProof ? `phone\n${identityProof.phone}\n\notp\n${identityProof.otp}` : "No phone or code yet."}{lastPayload ? `\n\norder\n${JSON.stringify(lastPayload, null, 2)}` : ""}</pre>
+          <p className="fine">The phone and the code go to TideCloak. The order does not include them.</p>
         </article>
         <article>
-          <h3>2. TideCloak turned the person into</h3>
-          <pre>{claims.sub ? `sub\n${claims.sub}\n\nmember\n${member?.anonId || "calculated after the order"}` : "Not signed in."}</pre>
-          <p className="fine">Name, email, and phone stayed at TideCloak.</p>
+          <h3>2. TideCloak checked and returned</h3>
+          <pre>{identityProof ? `phone ${identityProof.phone}\notp ${identityProof.otp}\nmatch ${identityProof.match ? "yes" : "no"}\n\ntoken\n${identityProof.token}` : "Waiting for the phone and code."}</pre>
+          <p className="fine">TideCloak kept the number and sent back a token. Subject {identityProof?.sub || "—"}.</p>
         </article>
         <article>
           <h3>3. Restaurant knows</h3>
-          <pre>{lastAward ? `member ${lastAward.anonId}\nissued ${lastAward.awarded} points\nyou now have ${lastAward.points} points` : "Nothing stored yet."}</pre>
-          <p className="fine">The kitchen issued the points. It never saw a phone number.</p>
+          <pre>{lastAward ? `member ${lastAward.anonId}\nissued ${lastAward.awarded} points\nyou now have ${lastAward.points} points` : identityProof ? `member ${identityProof.member}\nno order yet` : "Nothing stored yet."}</pre>
+          <p className="fine">The kitchen issued the points from the token. It never saw a phone number.</p>
         </article>
       </section>
 
