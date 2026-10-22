@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { verifyAccessToken } from "./server/auth.js";
+import { openTideSession } from "./server/identity.js";
 import { createOrder, exportCsv, listOrders, sessionFor } from "./server/orders.js";
 
 function readBody(req) {
@@ -43,6 +44,15 @@ function ordersApi() {
           }
           if (req.method === "GET" && url.pathname === "/api/export") {
             return send(res, 200, exportCsv(), "text/csv; charset=utf-8");
+          }
+          if (req.method === "POST" && url.pathname === "/api/identity/session") {
+            const result = await openTideSession(await readBody(req));
+            if (result.error) return send(res, result.status, { error: result.error });
+            return send(res, 200, {
+              accessToken: result.accessToken,
+              sub: result.sub,
+              members: result.members,
+            });
           }
           if (req.method === "POST" && url.pathname === "/api/orders") {
             // Check the token before reading the order, so a bad login can't poke at the menu rules.

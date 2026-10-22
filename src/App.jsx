@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useTideCloak } from "@tidecloak/react";
 import { identityClaims } from "./anon.js";
 
 const RESTAURANTS = [
@@ -18,7 +17,11 @@ function money(value) {
 }
 
 export default function App() {
-  const { authenticated, login, logout, token, getToken, isInitializing, initError } = useTideCloak();
+  const [accessToken, setAccessToken] = useState("");
+  const [signStep, setSignStep] = useState("");
+  const [phone, setPhone] = useState("+60123456789");
+  const [otp, setOtp] = useState("");
+  const [shownMember, setShownMember] = useState("");
   const [restaurantId, setRestaurantId] = useState("nasi-lane");
   const [table, setTable] = useState("04");
   const [cart, setCart] = useState([]);
@@ -30,17 +33,14 @@ export default function App() {
   const [exportRows, setExportRows] = useState([]);
   const [lastAward, setLastAward] = useState(null);
 
-  const claims = useMemo(() => identityClaims(token), [token]);
+  const claims = useMemo(() => identityClaims(accessToken), [accessToken]);
   const restaurant = RESTAURANTS.find((item) => item.id === restaurantId);
   const total = Math.round(cart.reduce((sum, item) => sum + item.price * item.qty, 0) * 100) / 100;
   const member = session?.members?.find((item) => item.restaurantId === restaurantId);
 
-  async function loadList(isAuthed) {
+  async function loadList(token) {
     const headers = {};
-    if (isAuthed) {
-      const access = await getToken();
-      if (access) headers.Authorization = `Bearer ${access}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
     const response = await fetch("/api/orders", { headers });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -53,8 +53,8 @@ export default function App() {
   }
 
   useEffect(() => {
-    loadList(authenticated);
-  }, [authenticated]);
+    loadList(accessToken);
+  }, [accessToken]);
 
   function addDish(dish) {
     setCart((current) => {
@@ -77,9 +77,9 @@ export default function App() {
   async function placeOrder() {
     setNotice("");
     setNoticeBad(false);
-    const access = await getToken();
-    if (!authenticated || !access) {
-      setNotice("Log in with TideCloak before sending the order.");
+    if (!accessToken) {
+      setSignStep("phone");
+      setNotice("Enter your phone number first. TideCloak keeps it.");
       setNoticeBad(true);
       return;
     }
@@ -98,7 +98,7 @@ export default function App() {
     setLastPayload(payload);
     const response = await fetch("/api/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${access}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify(payload),
     });
     const body = await response.json();
@@ -110,16 +110,15 @@ export default function App() {
     setCart([]);
     setLastAward({ anonId: body.order.anonId, awarded: body.loyalty.awarded, points: body.loyalty.points });
     setNotice(`The kitchen issued ${body.loyalty.awarded} points. You now have ${body.loyalty.points} at this restaurant.`);
-    loadList(true);
+    loadList(accessToken);
   }
 
   // Demo button. A logged-in diner tries to sneak a phone number into the order. The kitchen should refuse.
   async function sendPhoneAnyway() {
     setNotice("");
     setNoticeBad(true);
-    const access = await getToken();
-    if (!access) {
-      setNotice("Log in with TideCloak before sending the order.");
+    if (!accessToken) {
+      setNotice("Enter your phone number first. TideCloak keeps it.");
       return;
     }
     const payload = {
@@ -132,7 +131,7 @@ export default function App() {
     setLastPayload(payload);
     const response = await fetch("/api/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${access}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify(payload),
     });
     const body = await response.json();
@@ -150,19 +149,42 @@ export default function App() {
     }).filter(Boolean));
   }
 
-  async function onLogin() {
+  function signOut() {
+    setAccessToken("");
+    setSession(null);
+    setPhone("+60123456789");
+    setOtp("");
+    setShownMember("");
+    setSignStep("");
+    setLastAward(null);
+  }
+
+  async function verifyPhone() {
     setNotice("");
     setNoticeBad(false);
-    try {
-      await login();
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : String(error));
+    const response = await fetch("/api/identity/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, otp }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setNotice(body.error || "TideCloak did not accept that code.");
+      setNoticeBad(true);
+      return;
     }
+    const hereMember = body.members?.find((item) => item.restaurantId === restaurantId);
+    setShownMember(hereMember?.anonId || "");
+    setSignStep("morph");
+    window.setTimeout(() => {
+      setAccessToken(body.accessToken);
+      setPhone("");
+      setOtp("");
+      setSignStep("");
+    }, 1400);
   }
 
   const kitchen = orders.filter((order) => order.restaurantId === restaurantId);
-
-  if (isInitializing) return <main className="loading">Connecting to TideCloak…</main>;
 
   return (
     <div className="shell">
@@ -170,21 +192,48 @@ export default function App() {
         <div>
           <p className="brand">CloakDine</p>
           <h1>Table service without the phone number</h1>
-          <p className="hint">New diner? You leave this page for TideCloak. Choose Register there. CloakDine never asks for a phone number.</p>
+          <p className="hint">One tap. The phone number goes to TideCloak. The kitchen receives a member number and 10 points.</p>
         </div>
         <div className="session">
-          {authenticated ? (
+          {accessToken ? (
             <>
-              <span>Signed in with TideCloak</span>
-              <button type="button" onClick={logout}>Log out</button>
+              <span>TideCloak session</span>
+              <button type="button" onClick={signOut}>Log out</button>
             </>
           ) : (
-            <button type="button" className="primary" onClick={onLogin}>Log in with TideCloak</button>
+            <button type="button" className="primary" onClick={() => setSignStep("phone")}>Continue with phone</button>
           )}
         </div>
       </header>
 
-      {initError && <p className="banner bad">TideCloak initialization failed: {initError.message}</p>}
+      {signStep && (
+        <section className="gate">
+          {signStep === "phone" && (
+            <form onSubmit={(event) => { event.preventDefault(); setSignStep("otp"); }}>
+              <h2>Your phone number</h2>
+              <p>TideCloak stores this. The restaurant does not.</p>
+              <input value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" aria-label="Phone number" />
+              <button type="submit" className="primary">Send code</button>
+            </form>
+          )}
+          {signStep === "otp" && (
+            <form onSubmit={(event) => { event.preventDefault(); verifyPhone(); }}>
+              <h2>Enter the code</h2>
+              <p>Demo code from TideCloak: 1234</p>
+              <input value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" aria-label="One-time code" />
+              <button type="submit" className="primary">Verify</button>
+            </form>
+          )}
+          {signStep === "morph" && (
+            <div>
+              <h2>Held by TideCloak</h2>
+              <p className="struck">{phone}</p>
+              <p className="member">{shownMember}</p>
+              <p>The kitchen will see the member number, not the phone.</p>
+            </div>
+          )}
+        </section>
+      )}
 
       <main className="layout">
         <section className="menu-card">

@@ -48,6 +48,30 @@ button.primary {
 
 .hint { margin: 0.35rem 0 0; max-width: 38rem; color: #b7ad9f; font-size: 0.95rem; }
 
+.gate {
+  width: min(420px, calc(100% - 2rem));
+  margin: 0 auto 1rem;
+  background: #fffdf8;
+  color: #1c1915;
+  border-top: 4px solid #8d6b3a;
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.gate h2 { margin: 0; font-family: Newsreader, Georgia, serif; font-weight: 500; }
+
+.gate p { color: #746b60; }
+
+.gate input {
+  width: 100%;
+  margin: 0.4rem 0 0.8rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e3dacb;
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.struck { color: #8c3b32; text-decoration: line-through; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
 .top h1 {
   margin: 0.15rem 0 0;
   font-family: Newsreader, Georgia, serif;

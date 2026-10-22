@@ -2,8 +2,6 @@
 
 # CloakDine
 
-Team `RMITMELTrustUsBro_C2`.
-
 A diner orders at the table and keeps loyalty points, while the restaurant never receives a phone number, name, or email.
 
 ## Vision & originality
@@ -20,11 +18,11 @@ At Nasi Lane, Mira orders and earns points for next time. The kitchen sees the t
 
 ## Why TideCloak matters
 
-TideCloak holds the phone number on its own registration page. CloakDine requests no phone, profile, or email scope, so the access token's only identity claim is sub. The restaurant verifies that token, derives the member number, and discards the token. The order body is the table, the dishes, and the total. A phone number in the body is rejected.
+The diner enters a phone number and code 1234. TideCloak stores the number and returns a token whose only identity claim is sub. The restaurant checks that token, issues 10 points to the member number, and discards the token. A phone number added to the order is rejected.
 
 ## Prototype & storytelling
 
-Register on the TideCloak login page, or sign in as mira. Place an order at Nasi Lane and export the database. Switch to Teh House and order again: the member number changes and points start over. Switch back: the first number and points remain. The panel shows the token claims beside the JSON the restaurant received.
+Choose Continue with phone, enter +60123456789, then 1234. The phone is crossed out and a member number appears. Send an order at Nasi Lane. The guest and the kitchen both show 10 points. Switch to Teh House: the number changes and points start over. Switch back: the first points remain. The export has no phone column.
 
 ## Setup
 
@@ -48,3 +46,5 @@ The two-minute demo video is `demo.mp4` in this repository.
 A new diner clicks **Log in with TideCloak**, then **Register** on the TideCloak page. The phone number stays on that page. TideCloak sends them back to http://localhost:5174.
 
 `npm run setup` turns registration on, creates the `cloakdine` realm, a public client, and the demo user, then writes `public/tidecloak.json`. That file is not committed. The admin console is http://localhost:8080 (`admin` / `password`). The demo account's profile has a phone number. The restaurant export does not.
+
+Team `RMITMELTrustUsBro_C2`.
