@@ -28,6 +28,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [noticeBad, setNoticeBad] = useState(false);
   const [exportRows, setExportRows] = useState([]);
+  const [lastAward, setLastAward] = useState(null);
 
   const claims = useMemo(() => identityClaims(token), [token]);
   const restaurant = RESTAURANTS.find((item) => item.id === restaurantId);
@@ -107,7 +108,8 @@ export default function App() {
       return;
     }
     setCart([]);
-    setNotice(`Order ${body.order.id} is in the kitchen. Points at this restaurant: ${body.loyalty.points}.`);
+    setLastAward({ anonId: body.order.anonId, awarded: body.loyalty.awarded, points: body.loyalty.points });
+    setNotice(`The kitchen issued ${body.loyalty.awarded} points. You now have ${body.loyalty.points} at this restaurant.`);
     loadList(true);
   }
 
@@ -142,9 +144,9 @@ export default function App() {
     const text = await response.text();
     const lines = text.trim().split("\n").slice(1).filter(Boolean);
     setExportRows(lines.map((line) => {
-      const match = line.match(/^(\d+),([^,]+),([^,]+),"([^"]*)",([^,]+),(\S+)/);
+      const match = line.match(/^(\d+),([^,]+),([^,]+),"([^"]*)",([^,]+),(\S+),(\d+)/);
       if (!match) return null;
-      return { id: match[1], restaurant: match[2], table: match[3], items: match[4], total: match[5], anonId: match[6] };
+      return { id: match[1], restaurant: match[2], table: match[3], items: match[4], total: match[5], anonId: match[6], points: match[7] };
     }).filter(Boolean));
   }
 
@@ -222,6 +224,7 @@ export default function App() {
               <p className="quiet">{cart.length === 0 ? "No dishes yet." : "This check"}</p>
               <strong>{money(total)}</strong>
               <p className="member">{member ? member.anonId : "Member number appears after login"}</p>
+              <p className="quiet">This order earns 10 points. You have {member ? member.points : 0} points here.</p>
               {cart.length > 0 && (
                 <ul className="quiet">
                   {cart.map((item) => (
@@ -248,8 +251,8 @@ export default function App() {
               <h2>{restaurant.name}</h2>
             </div>
             <p className="points">
-              <strong>{member ? member.points : "0"}</strong>
-              points · {member ? member.visits : 0} visits
+              <strong>{member ? member.points : 0}</strong>
+              points on this guest's account
             </p>
           </div>
 
@@ -265,6 +268,7 @@ export default function App() {
                 </ul>
                 <footer>
                   <span>{money(order.total)}</span>
+                  <span>+10 points issued</span>
                   <span>{order.anonId}</span>
                 </footer>
               </article>
@@ -275,7 +279,7 @@ export default function App() {
           <div className="ledger-head">
             <button type="button" className="primary" onClick={showExport}>Open the export ledger</button>
           </div>
-          <p className="fine">The ledger has order, restaurant, table, items, total, and member number. Name, email, and phone columns: 0.</p>
+          <p className="fine">The ledger has the order, the member number, and the 10 points issued. Name, email, and phone columns: 0.</p>
           {exportRows.length > 0 && (
             <table className="ledger">
               <thead>
@@ -285,6 +289,7 @@ export default function App() {
                   <th>Items</th>
                   <th>Total</th>
                   <th>Member</th>
+                  <th>Points</th>
                 </tr>
               </thead>
               <tbody>
@@ -295,6 +300,7 @@ export default function App() {
                     <td>{row.items}</td>
                     <td>RM {row.total}</td>
                     <td>{row.anonId}</td>
+                    <td>{row.points}</td>
                   </tr>
                 ))}
               </tbody>
@@ -305,14 +311,19 @@ export default function App() {
 
       <section className="proof">
         <article>
-          <h3>What TideCloak returned</h3>
-          <p className="fine">Displayed here only. The server accepts the order only after it verifies the signature.</p>
-          <pre>{Object.keys(claims).length ? JSON.stringify(claims, null, 2) : "Not signed in."}</pre>
+          <h3>1. Customer submitted</h3>
+          <pre>{lastPayload ? JSON.stringify(lastPayload, null, 2) : "No order yet."}</pre>
+          <p className="fine">Table, dishes, and total. No phone number.</p>
         </article>
         <article>
-          <h3>What the restaurant received</h3>
-          <p className="fine">Authorization carried the token. It is not in this body, and it is not stored.</p>
-          <pre>{lastPayload ? JSON.stringify(lastPayload, null, 2) : "No order sent."}</pre>
+          <h3>2. TideCloak turned the person into</h3>
+          <pre>{claims.sub ? `sub\n${claims.sub}\n\nmember\n${member?.anonId || "calculated after the order"}` : "Not signed in."}</pre>
+          <p className="fine">Name, email, and phone stayed at TideCloak.</p>
+        </article>
+        <article>
+          <h3>3. Restaurant knows</h3>
+          <pre>{lastAward ? `member ${lastAward.anonId}\nissued ${lastAward.awarded} points\nyou now have ${lastAward.points} points` : "Nothing stored yet."}</pre>
+          <p className="fine">The kitchen issued the points. It never saw a phone number.</p>
         </article>
       </section>
     </div>

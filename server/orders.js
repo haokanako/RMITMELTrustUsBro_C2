@@ -9,6 +9,7 @@ const MENU = {
 };
 
 const RESTAURANTS = new Set(["nasi-lane", "teh-house"]);
+const POINTS_PER_ORDER = 10;
 // Phone, name, and the member number are not fields. The browser does not get to invent the member number.
 const ALLOWED = ["restaurantId", "table", "items", "total"];
 const ITEM_ALLOWED = ["name", "price", "qty"];
@@ -19,8 +20,7 @@ function looksLikePersonalData(value) {
 
 function loyaltyFor(restaurantId, anonId) {
   const mine = orders.filter((order) => order.restaurantId === restaurantId && order.anonId === anonId);
-  const points = mine.reduce((sum, order) => sum + order.total, 0);
-  return { visits: mine.length, points: Math.round(points * 100) / 100 };
+  return { visits: mine.length, points: mine.length * POINTS_PER_ORDER, awarded: POINTS_PER_ORDER };
 }
 
 export function createOrder(body, sub) {
@@ -102,17 +102,17 @@ function summarize() {
     const key = `${order.restaurantId}|${order.anonId}`;
     const current = groups.get(key) || { restaurantId: order.restaurantId, anonId: order.anonId, visits: 0, points: 0 };
     current.visits += 1;
-    current.points = Math.round((current.points + order.total) * 100) / 100;
+    current.points += POINTS_PER_ORDER;
     groups.set(key, current);
   }
   return [...groups.values()];
 }
 
 export function exportCsv() {
-  const lines = ["order_id,restaurant,table,items,total_rm,anon_id"];
+  const lines = ["order_id,restaurant,table,items,total_rm,anon_id,points_issued"];
   for (const order of orders) {
     const items = order.items.map((item) => `${item.qty}x ${item.name}`).join("; ");
-    lines.push([order.id, order.restaurantId, order.table, `"${items}"`, order.total.toFixed(2), order.anonId].join(","));
+    lines.push([order.id, order.restaurantId, order.table, `"${items}"`, order.total.toFixed(2), order.anonId, POINTS_PER_ORDER].join(","));
   }
   return lines.join("\n") + "\n";
 }
